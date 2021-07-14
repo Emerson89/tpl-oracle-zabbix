@@ -1,8 +1,9 @@
-# Monitoramento por ODBC Banco de dados Oracle
+# Monitoramento por ODBC Banco de dados Oracle no Zabbix
 
 ## Requisitos
 
-Zabbix-server 4.4
+# Zabbix-server 4.4
+# Centos 7
 
 O monitoramento ODBC corresponde ao tipo de item do monitor de banco de dados no frontend do Zabbix.
 ODBC é uma API de middleware da linguagem de programação C para acessar sistemas de gerenciamento de banco de dados (DBMS). O conceito ODBC foi desenvolvido pela Microsoft e posteriormente transportado para outras plataformas.
