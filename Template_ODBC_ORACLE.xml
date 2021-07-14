@@ -1,0 +1,1503 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zabbix_export>
+    <version>4.4</version>
+    <date>2021-07-14T20:12:56Z</date>
+    <groups>
+        <group>
+            <name>TEMPLATES - MANDIC</name>
+        </group>
+    </groups>
+    <templates>
+        <template>
+            <template>Template oracleDB - MANDIC - Allcare</template>
+            <name>Template oracleDB - MANDIC - Allcare</name>
+            <description>1. Create an Oracle user for monitoring.&#13;
+&#13;
+2. Set the user name and password in host macros ({$ORACLE.USER} and {$ORACLE.PASSWORD}).&#13;
+  Do not forget to install the Microsoft ODBC driver on the Zabbix server or the Zabbix proxy.&#13;
+  See Oracle documentation for instructions: https://www.oracle.com/database/technologies/releasenote-odbc-ic.html.&#13;
+ Note! Credentials in the odbc.ini do not work for Oracle.&#13;
+  Note! Be sure that ODBC connects to Oracle with session parameter NLS_NUMERIC_CHARACTERS= '.,' It is important for correct display float numbers in Zabbix.&#13;
+The &quot;Service's TCP port state&quot; item uses {HOST.CONN} and {$ORACLE.PORT} macros to check the availability of the listener.</description>
+            <groups>
+                <group>
+                    <name>TEMPLATES - MANDIC</name>
+                </group>
+            </groups>
+            <applications>
+                <application>
+                    <name>Zabbix raw items</name>
+                </application>
+            </applications>
+            <items>
+                <item>
+                    <name>Oracle: Get tablespaces stats MX</name>
+                    <type>ODBC</type>
+                    <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN02}&quot;]</key>
+                    <delay>5m</delay>
+                    <history>0</history>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                    <params>SELECT df.tablespace_name AS tablespace, df.type AS TYPE, SUM(df.bytes) AS used_bytes, SUM(df.max_bytes) AS max_bytes, SUM(f.free) AS free_bytes, ROUND(SUM(df.bytes)/ SUM(df.max_bytes)* 100, 2) AS used_pct, DECODE(df.status, 'ONLINE', 1, 'OFFLINE', 2, 'READ ONLY', 3, 0) AS status FROM ( SELECT ddf.file_id, dt.contents AS TYPE, dt.STATUS , ddf.file_name, ddf.tablespace_name, TRUNC(ddf.bytes) AS bytes, TRUNC(GREATEST(ddf.bytes, ddf.maxbytes)) AS max_bytes FROM dba_data_files ddf, dba_tablespaces dt WHERE ddf.tablespace_name = dt.tablespace_name ) df, ( SELECT TRUNC(SUM(bytes)) AS FREE, file_id FROM dba_free_space GROUP BY file_id ) f WHERE df.file_id = f.file_id (+) GROUP BY df.tablespace_name, df.TYPE, df.status UNION ALL SELECT Y.name AS tablespace_name, Y.type AS TYPE, SUM(Y.bytes) AS bytes, SUM(Y.max_bytes) AS max_bytes, MAX(NVL(Y.free_bytes, 0)) AS FREE, ROUND(SUM(Y.bytes)/ SUM(Y.max_bytes)* 100, 2) AS used_pct, DECODE(Y.tbs_status, 'ONLINE', 1, 'OFFLINE', 2, 'READ ONLY', 3, 0) AS status FROM ( SELECT dtf.tablespace_name AS name, dt.contents AS TYPE, dt.STATUS AS tbs_status, dtf.status AS status, dtf.bytes AS bytes, (SELECT ((f.total_blocks - s.tot_used_blocks)* vp.value) FROM ( SELECT tablespace_name, SUM(used_blocks) tot_used_blocks FROM gv$sort_segment WHERE tablespace_name != 'DUMMY' GROUP BY tablespace_name) s, ( SELECT tablespace_name, SUM(blocks) total_blocks FROM dba_temp_files WHERE tablespace_name != 'DUMMY' GROUP BY tablespace_name) f, ( SELECT value FROM v$parameter WHERE name = 'db_block_size') vp WHERE f.tablespace_name = s.tablespace_name AND f.tablespace_name = dtf.tablespace_name ) AS free_bytes, CASE WHEN dtf.maxbytes = 0 THEN dtf.bytes ELSE dtf.maxbytes END AS max_bytes FROM sys.dba_temp_files dtf, sys.dba_tablespaces dt WHERE dtf.tablespace_name = dt.tablespace_name ) Y GROUP BY Y.name, Y.TYPE, Y.tbs_status ORDER BY tablespace;</params>
+                    <username>{$ORACLE.USER}</username>
+                    <password>{$ORACLE.PASSWORD}</password>
+                    <applications>
+                        <application>
+                            <name>Zabbix raw items</name>
+                        </application>
+                    </applications>
+                </item>
+                <item>
+                    <name>Oracle: Get tablespaces stats AL</name>
+                    <type>ODBC</type>
+                    <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN03}&quot;]</key>
+                    <delay>5m</delay>
+                    <history>0</history>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                    <params>SELECT df.tablespace_name AS tablespace, df.type AS TYPE, SUM(df.bytes) AS used_bytes, SUM(df.max_bytes) AS max_bytes, SUM(f.free) AS free_bytes, ROUND(SUM(df.bytes)/ SUM(df.max_bytes)* 100, 2) AS used_pct, DECODE(df.status, 'ONLINE', 1, 'OFFLINE', 2, 'READ ONLY', 3, 0) AS status FROM ( SELECT ddf.file_id, dt.contents AS TYPE, dt.STATUS , ddf.file_name, ddf.tablespace_name, TRUNC(ddf.bytes) AS bytes, TRUNC(GREATEST(ddf.bytes, ddf.maxbytes)) AS max_bytes FROM dba_data_files ddf, dba_tablespaces dt WHERE ddf.tablespace_name = dt.tablespace_name ) df, ( SELECT TRUNC(SUM(bytes)) AS FREE, file_id FROM dba_free_space GROUP BY file_id ) f WHERE df.file_id = f.file_id (+) GROUP BY df.tablespace_name, df.TYPE, df.status UNION ALL SELECT Y.name AS tablespace_name, Y.type AS TYPE, SUM(Y.bytes) AS bytes, SUM(Y.max_bytes) AS max_bytes, MAX(NVL(Y.free_bytes, 0)) AS FREE, ROUND(SUM(Y.bytes)/ SUM(Y.max_bytes)* 100, 2) AS used_pct, DECODE(Y.tbs_status, 'ONLINE', 1, 'OFFLINE', 2, 'READ ONLY', 3, 0) AS status FROM ( SELECT dtf.tablespace_name AS name, dt.contents AS TYPE, dt.STATUS AS tbs_status, dtf.status AS status, dtf.bytes AS bytes, (SELECT ((f.total_blocks - s.tot_used_blocks)* vp.value) FROM ( SELECT tablespace_name, SUM(used_blocks) tot_used_blocks FROM gv$sort_segment WHERE tablespace_name != 'DUMMY' GROUP BY tablespace_name) s, ( SELECT tablespace_name, SUM(blocks) total_blocks FROM dba_temp_files WHERE tablespace_name != 'DUMMY' GROUP BY tablespace_name) f, ( SELECT value FROM v$parameter WHERE name = 'db_block_size') vp WHERE f.tablespace_name = s.tablespace_name AND f.tablespace_name = dtf.tablespace_name ) AS free_bytes, CASE WHEN dtf.maxbytes = 0 THEN dtf.bytes ELSE dtf.maxbytes END AS max_bytes FROM sys.dba_temp_files dtf, sys.dba_tablespaces dt WHERE dtf.tablespace_name = dt.tablespace_name ) Y GROUP BY Y.name, Y.TYPE, Y.tbs_status ORDER BY tablespace;</params>
+                    <username>{$ORACLE.USER}</username>
+                    <password>{$ORACLE.PASSWORD}</password>
+                    <applications>
+                        <application>
+                            <name>Zabbix raw items</name>
+                        </application>
+                    </applications>
+                </item>
+                <item>
+                    <name>Oracle: Get tablespaces stats CU</name>
+                    <type>ODBC</type>
+                    <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN04}&quot;]</key>
+                    <delay>5m</delay>
+                    <history>0</history>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                    <params>SELECT df.tablespace_name AS tablespace, df.type AS TYPE, SUM(df.bytes) AS used_bytes, SUM(df.max_bytes) AS max_bytes, SUM(f.free) AS free_bytes, ROUND(SUM(df.bytes)/ SUM(df.max_bytes)* 100, 2) AS used_pct, DECODE(df.status, 'ONLINE', 1, 'OFFLINE', 2, 'READ ONLY', 3, 0) AS status FROM ( SELECT ddf.file_id, dt.contents AS TYPE, dt.STATUS , ddf.file_name, ddf.tablespace_name, TRUNC(ddf.bytes) AS bytes, TRUNC(GREATEST(ddf.bytes, ddf.maxbytes)) AS max_bytes FROM dba_data_files ddf, dba_tablespaces dt WHERE ddf.tablespace_name = dt.tablespace_name ) df, ( SELECT TRUNC(SUM(bytes)) AS FREE, file_id FROM dba_free_space GROUP BY file_id ) f WHERE df.file_id = f.file_id (+) GROUP BY df.tablespace_name, df.TYPE, df.status UNION ALL SELECT Y.name AS tablespace_name, Y.type AS TYPE, SUM(Y.bytes) AS bytes, SUM(Y.max_bytes) AS max_bytes, MAX(NVL(Y.free_bytes, 0)) AS FREE, ROUND(SUM(Y.bytes)/ SUM(Y.max_bytes)* 100, 2) AS used_pct, DECODE(Y.tbs_status, 'ONLINE', 1, 'OFFLINE', 2, 'READ ONLY', 3, 0) AS status FROM ( SELECT dtf.tablespace_name AS name, dt.contents AS TYPE, dt.STATUS AS tbs_status, dtf.status AS status, dtf.bytes AS bytes, (SELECT ((f.total_blocks - s.tot_used_blocks)* vp.value) FROM ( SELECT tablespace_name, SUM(used_blocks) tot_used_blocks FROM gv$sort_segment WHERE tablespace_name != 'DUMMY' GROUP BY tablespace_name) s, ( SELECT tablespace_name, SUM(blocks) total_blocks FROM dba_temp_files WHERE tablespace_name != 'DUMMY' GROUP BY tablespace_name) f, ( SELECT value FROM v$parameter WHERE name = 'db_block_size') vp WHERE f.tablespace_name = s.tablespace_name AND f.tablespace_name = dtf.tablespace_name ) AS free_bytes, CASE WHEN dtf.maxbytes = 0 THEN dtf.bytes ELSE dtf.maxbytes END AS max_bytes FROM sys.dba_temp_files dtf, sys.dba_tablespaces dt WHERE dtf.tablespace_name = dt.tablespace_name ) Y GROUP BY Y.name, Y.TYPE, Y.tbs_status ORDER BY tablespace;</params>
+                    <username>{$ORACLE.USER}</username>
+                    <password>{$ORACLE.PASSWORD}</password>
+                    <applications>
+                        <application>
+                            <name>Zabbix raw items</name>
+                        </application>
+                    </applications>
+                </item>
+                <item>
+                    <name>Oracle: Get tablespaces stats TP</name>
+                    <type>ODBC</type>
+                    <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN05}&quot;]</key>
+                    <delay>5m</delay>
+                    <history>0</history>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                    <params>SELECT df.tablespace_name AS tablespace, df.type AS TYPE, SUM(df.bytes) AS used_bytes, SUM(df.max_bytes) AS max_bytes, SUM(f.free) AS free_bytes, ROUND(SUM(df.bytes)/ SUM(df.max_bytes)* 100, 2) AS used_pct, DECODE(df.status, 'ONLINE', 1, 'OFFLINE', 2, 'READ ONLY', 3, 0) AS status FROM ( SELECT ddf.file_id, dt.contents AS TYPE, dt.STATUS , ddf.file_name, ddf.tablespace_name, TRUNC(ddf.bytes) AS bytes, TRUNC(GREATEST(ddf.bytes, ddf.maxbytes)) AS max_bytes FROM dba_data_files ddf, dba_tablespaces dt WHERE ddf.tablespace_name = dt.tablespace_name ) df, ( SELECT TRUNC(SUM(bytes)) AS FREE, file_id FROM dba_free_space GROUP BY file_id ) f WHERE df.file_id = f.file_id (+) GROUP BY df.tablespace_name, df.TYPE, df.status UNION ALL SELECT Y.name AS tablespace_name, Y.type AS TYPE, SUM(Y.bytes) AS bytes, SUM(Y.max_bytes) AS max_bytes, MAX(NVL(Y.free_bytes, 0)) AS FREE, ROUND(SUM(Y.bytes)/ SUM(Y.max_bytes)* 100, 2) AS used_pct, DECODE(Y.tbs_status, 'ONLINE', 1, 'OFFLINE', 2, 'READ ONLY', 3, 0) AS status FROM ( SELECT dtf.tablespace_name AS name, dt.contents AS TYPE, dt.STATUS AS tbs_status, dtf.status AS status, dtf.bytes AS bytes, (SELECT ((f.total_blocks - s.tot_used_blocks)* vp.value) FROM ( SELECT tablespace_name, SUM(used_blocks) tot_used_blocks FROM gv$sort_segment WHERE tablespace_name != 'DUMMY' GROUP BY tablespace_name) s, ( SELECT tablespace_name, SUM(blocks) total_blocks FROM dba_temp_files WHERE tablespace_name != 'DUMMY' GROUP BY tablespace_name) f, ( SELECT value FROM v$parameter WHERE name = 'db_block_size') vp WHERE f.tablespace_name = s.tablespace_name AND f.tablespace_name = dtf.tablespace_name ) AS free_bytes, CASE WHEN dtf.maxbytes = 0 THEN dtf.bytes ELSE dtf.maxbytes END AS max_bytes FROM sys.dba_temp_files dtf, sys.dba_tablespaces dt WHERE dtf.tablespace_name = dt.tablespace_name ) Y GROUP BY Y.name, Y.TYPE, Y.tbs_status ORDER BY tablespace;</params>
+                    <username>{$ORACLE.USER}</username>
+                    <password>{$ORACLE.PASSWORD}</password>
+                    <applications>
+                        <application>
+                            <name>Zabbix raw items</name>
+                        </application>
+                    </applications>
+                </item>
+                <item>
+                    <name>Oracle: Get tablespaces stats TO</name>
+                    <type>ODBC</type>
+                    <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN06}&quot;]</key>
+                    <delay>5m</delay>
+                    <history>0</history>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                    <params>SELECT df.tablespace_name AS tablespace, df.type AS TYPE, SUM(df.bytes) AS used_bytes, SUM(df.max_bytes) AS max_bytes, SUM(f.free) AS free_bytes, ROUND(SUM(df.bytes)/ SUM(df.max_bytes)* 100, 2) AS used_pct, DECODE(df.status, 'ONLINE', 1, 'OFFLINE', 2, 'READ ONLY', 3, 0) AS status FROM ( SELECT ddf.file_id, dt.contents AS TYPE, dt.STATUS , ddf.file_name, ddf.tablespace_name, TRUNC(ddf.bytes) AS bytes, TRUNC(GREATEST(ddf.bytes, ddf.maxbytes)) AS max_bytes FROM dba_data_files ddf, dba_tablespaces dt WHERE ddf.tablespace_name = dt.tablespace_name ) df, ( SELECT TRUNC(SUM(bytes)) AS FREE, file_id FROM dba_free_space GROUP BY file_id ) f WHERE df.file_id = f.file_id (+) GROUP BY df.tablespace_name, df.TYPE, df.status UNION ALL SELECT Y.name AS tablespace_name, Y.type AS TYPE, SUM(Y.bytes) AS bytes, SUM(Y.max_bytes) AS max_bytes, MAX(NVL(Y.free_bytes, 0)) AS FREE, ROUND(SUM(Y.bytes)/ SUM(Y.max_bytes)* 100, 2) AS used_pct, DECODE(Y.tbs_status, 'ONLINE', 1, 'OFFLINE', 2, 'READ ONLY', 3, 0) AS status FROM ( SELECT dtf.tablespace_name AS name, dt.contents AS TYPE, dt.STATUS AS tbs_status, dtf.status AS status, dtf.bytes AS bytes, (SELECT ((f.total_blocks - s.tot_used_blocks)* vp.value) FROM ( SELECT tablespace_name, SUM(used_blocks) tot_used_blocks FROM gv$sort_segment WHERE tablespace_name != 'DUMMY' GROUP BY tablespace_name) s, ( SELECT tablespace_name, SUM(blocks) total_blocks FROM dba_temp_files WHERE tablespace_name != 'DUMMY' GROUP BY tablespace_name) f, ( SELECT value FROM v$parameter WHERE name = 'db_block_size') vp WHERE f.tablespace_name = s.tablespace_name AND f.tablespace_name = dtf.tablespace_name ) AS free_bytes, CASE WHEN dtf.maxbytes = 0 THEN dtf.bytes ELSE dtf.maxbytes END AS max_bytes FROM sys.dba_temp_files dtf, sys.dba_tablespaces dt WHERE dtf.tablespace_name = dt.tablespace_name ) Y GROUP BY Y.name, Y.TYPE, Y.tbs_status ORDER BY tablespace;</params>
+                    <username>{$ORACLE.USER}</username>
+                    <password>{$ORACLE.PASSWORD}</password>
+                    <applications>
+                        <application>
+                            <name>Zabbix raw items</name>
+                        </application>
+                    </applications>
+                </item>
+                <item>
+                    <name>Oracle: Get tablespaces stats</name>
+                    <type>ODBC</type>
+                    <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN}&quot;]</key>
+                    <delay>5m</delay>
+                    <history>0</history>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                    <params>Alter Session Set NLS_NUMERIC_CHARACTERS='.,';&#13;
+SELECT df.tablespace_name AS tablespace, df.type AS TYPE, SUM(df.bytes) AS used_bytes, SUM(df.max_bytes) AS max_bytes, SUM(f.free) AS free_bytes, ROUND(SUM(df.bytes)/ SUM(df.max_bytes)* 100, 2) AS used_pct, DECODE(df.status, 'ONLINE', 1, 'OFFLINE', 2, 'READ ONLY', 3, 0) AS status FROM ( SELECT ddf.file_id, dt.contents AS TYPE, dt.STATUS , ddf.file_name, ddf.tablespace_name, TRUNC(ddf.bytes) AS bytes, TRUNC(GREATEST(ddf.bytes, ddf.maxbytes)) AS max_bytes FROM dba_data_files ddf, dba_tablespaces dt WHERE ddf.tablespace_name = dt.tablespace_name ) df, ( SELECT TRUNC(SUM(bytes)) AS FREE, file_id FROM dba_free_space GROUP BY file_id ) f WHERE df.file_id = f.file_id (+) GROUP BY df.tablespace_name, df.TYPE, df.status UNION ALL SELECT Y.name AS tablespace_name, Y.type AS TYPE, SUM(Y.bytes) AS bytes, SUM(Y.max_bytes) AS max_bytes, MAX(NVL(Y.free_bytes, 0)) AS FREE, ROUND(SUM(Y.bytes)/ SUM(Y.max_bytes)* 100, 2) AS used_pct, DECODE(Y.tbs_status, 'ONLINE', 1, 'OFFLINE', 2, 'READ ONLY', 3, 0) AS status FROM ( SELECT dtf.tablespace_name AS name, dt.contents AS TYPE, dt.STATUS AS tbs_status, dtf.status AS status, dtf.bytes AS bytes, (SELECT ((f.total_blocks - s.tot_used_blocks)* vp.value) FROM ( SELECT tablespace_name, SUM(used_blocks) tot_used_blocks FROM gv$sort_segment WHERE tablespace_name != 'DUMMY' GROUP BY tablespace_name) s, ( SELECT tablespace_name, SUM(blocks) total_blocks FROM dba_temp_files WHERE tablespace_name != 'DUMMY' GROUP BY tablespace_name) f, ( SELECT value FROM v$parameter WHERE name = 'db_block_size') vp WHERE f.tablespace_name = s.tablespace_name AND f.tablespace_name = dtf.tablespace_name ) AS free_bytes, CASE WHEN dtf.maxbytes = 0 THEN dtf.bytes ELSE dtf.maxbytes END AS max_bytes FROM sys.dba_temp_files dtf, sys.dba_tablespaces dt WHERE dtf.tablespace_name = dt.tablespace_name ) Y GROUP BY Y.name, Y.TYPE, Y.tbs_status ORDER BY tablespace;</params>
+                    <username>{$ORACLE.USER}</username>
+                    <password>{$ORACLE.PASSWORD}</password>
+                    <applications>
+                        <application>
+                            <name>Zabbix raw items</name>
+                        </application>
+                    </applications>
+                </item>
+            </items>
+            <discovery_rules>
+                <discovery_rule>
+                    <name>Tablespace DiscoveryMX</name>
+                    <type>ODBC</type>
+                    <key>db.odbc.discovery[tbsname,&quot;{$ORACLE.DSN02}&quot;]</key>
+                    <delay>1h</delay>
+                    <params>SELECT&#13;
+tablespace_name AS tablespace,&#13;
+contents  FROM DBA_TABLESPACES;</params>
+                    <username>{$ORACLE.USER}</username>
+                    <password>{$ORACLE.PASSWORD}</password>
+                    <filter>
+                        <conditions>
+                            <condition>
+                                <macro>{#TABLESPACE}</macro>
+                                <value>{$ORACLE.TABLESPACE.NAME.MATCHES}</value>
+                                <formulaid>B</formulaid>
+                            </condition>
+                            <condition>
+                                <macro>{#TABLESPACE}</macro>
+                                <value>{$ORACLE.TABLESPACE.NAME.NOT_MATCHES}</value>
+                                <operator>NOT_MATCHES_REGEX</operator>
+                                <formulaid>A</formulaid>
+                            </condition>
+                        </conditions>
+                    </filter>
+                    <description>Scanning tablespaces in DBMS.</description>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>Oracle TBS MXMPD '{#TABLESPACE}': Tablespace allocated, bytes</name>
+                            <type>DEPENDENT</type>
+                            <key>oracle.tbs_alloc_bytesmx[&quot;{#TABLESPACE}&quot;]</key>
+                            <delay>0</delay>
+                            <history>8d</history>
+                            <trends>180d</trends>
+                            <units>B</units>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Oracle {#CONTENTS} Tablespaces. {#TABLESPACE}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$[?(@.TABLESPACE=='{#TABLESPACE}')].USED_BYTES.first()</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN02}&quot;]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Oracle TBS MXMPD '{#TABLESPACE}': Tablespace free, bytes</name>
+                            <type>DEPENDENT</type>
+                            <key>oracle.tbs_free_bytesmx[&quot;{#TABLESPACE}&quot;]</key>
+                            <delay>0</delay>
+                            <history>8d</history>
+                            <trends>180d</trends>
+                            <units>B</units>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Oracle {#CONTENTS} Tablespaces. {#TABLESPACE}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$[?(@.TABLESPACE=='{#TABLESPACE}')].FREE_BYTES.first()</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN02}&quot;]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Oracle TBS MXMPD '{#TABLESPACE}': Tablespace MAX size, bytes</name>
+                            <type>DEPENDENT</type>
+                            <key>oracle.tbs_max_bytesmx[&quot;{#TABLESPACE}&quot;]</key>
+                            <delay>0</delay>
+                            <history>8d</history>
+                            <trends>180d</trends>
+                            <units>B</units>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Oracle {#CONTENTS} Tablespaces. {#TABLESPACE}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$[?(@.TABLESPACE=='{#TABLESPACE}')].MAX_BYTES.first()</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN02}&quot;]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Oracle TBS MXMPD '{#TABLESPACE}': Open status</name>
+                            <type>DEPENDENT</type>
+                            <key>oracle.tbs_statusmx[&quot;{#TABLESPACE}&quot;]</key>
+                            <delay>0</delay>
+                            <history>8d</history>
+                            <trends>180d</trends>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Oracle {#CONTENTS} Tablespaces. {#TABLESPACE}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <valuemap>
+                                <name>Oracle tablespace status</name>
+                            </valuemap>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$[?(@.TABLESPACE=='{#TABLESPACE}')].STATUS.first()</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN02}&quot;]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{diff()}=1</expression>
+                                    <name>Oracle TBS '{#TABLESPACE}': Tablespace status has changed (new value received: {ITEM.VALUE}-{$ORACLE.DSN02})</name>
+                                    <priority>INFO</priority>
+                                    <description>Oracle tablespace status has changed. Ack to close.</description>
+                                    <manual_close>YES</manual_close>
+                                    <dependencies>
+                                        <dependency>
+                                            <name>Oracle TBS '{#TABLESPACE}': Tablespase is OFFLINE - ({$ORACLE.DSN02})</name>
+                                            <expression>{Template oracleDB - MANDIC - Allcare:oracle.tbs_statusmx[&quot;{#TABLESPACE}&quot;].last()}=2</expression>
+                                        </dependency>
+                                    </dependencies>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <expression>{last()}=2</expression>
+                                    <name>Oracle TBS '{#TABLESPACE}': Tablespase is OFFLINE - ({$ORACLE.DSN02})</name>
+                                    <priority>HIGH</priority>
+                                    <description>The tablespase is in the offline state.</description>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Oracle TBS MXMPD '{#TABLESPACE}': Tablespace usage percent</name>
+                            <type>DEPENDENT</type>
+                            <key>oracle.tbs_used_pctmx[&quot;{#TABLESPACE}&quot;]</key>
+                            <delay>0</delay>
+                            <history>8d</history>
+                            <trends>180d</trends>
+                            <value_type>FLOAT</value_type>
+                            <units>%</units>
+                            <description>Allocated bytes/Max bytes*100</description>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Oracle {#CONTENTS} Tablespaces. {#TABLESPACE}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$[?(@.TABLESPACE=='{#TABLESPACE}')].USED_PCT.first()</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN02}&quot;]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{min(5m)}&gt;{$ORACLE.TBS.USED.PCT.MAX.HIGH}</expression>
+                                    <name>Oracle TBS '{#TABLESPACE}': Tablespace Usage is too high (over {$ORACLE.TBS.USED.PCT.MAX.HIGH}% for 5m). ({$ORACLE.DSN02})</name>
+                                    <priority>HIGH</priority>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <expression>{min(5m)}&gt;{$ORACLE.TBS.USED.PCT.MAX.WARN}</expression>
+                                    <name>Oracle TBS '{#TABLESPACE}': Tablespace usage is too high (over {$ORACLE.TBS.USED.PCT.MAX.WARN}% for 5m). ({$ORACLE.DSN02})</name>
+                                    <priority>WARNING</priority>
+                                    <dependencies>
+                                        <dependency>
+                                            <name>Oracle TBS '{#TABLESPACE}': Tablespace Usage is too high (over {$ORACLE.TBS.USED.PCT.MAX.HIGH}% for 5m). ({$ORACLE.DSN02})</name>
+                                            <expression>{Template oracleDB - MANDIC - Allcare:oracle.tbs_used_pctmx[&quot;{#TABLESPACE}&quot;].min(5m)}&gt;{$ORACLE.TBS.USED.PCT.MAX.HIGH}</expression>
+                                        </dependency>
+                                    </dependencies>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                    </item_prototypes>
+                    <graph_prototypes>
+                        <graph_prototype>
+                            <name>Oracle TBS '{#TABLESPACE}': Tablespace '{#TABLESPACE}' MXMPD</name>
+                            <graph_items>
+                                <graph_item>
+                                    <color>FFFF00</color>
+                                    <item>
+                                        <host>Template oracleDB - MANDIC - Allcare</host>
+                                        <key>oracle.tbs_alloc_bytesmx[&quot;{#TABLESPACE}&quot;]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>1</sortorder>
+                                    <color>388E3C</color>
+                                    <item>
+                                        <host>Template oracleDB - MANDIC - Allcare</host>
+                                        <key>oracle.tbs_max_bytesmx[&quot;{#TABLESPACE}&quot;]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>2</sortorder>
+                                    <drawtype>DASHED_LINE</drawtype>
+                                    <color>E53935</color>
+                                    <yaxisside>RIGHT</yaxisside>
+                                    <calc_fnc>ALL</calc_fnc>
+                                    <item>
+                                        <host>Template oracleDB - MANDIC - Allcare</host>
+                                        <key>oracle.tbs_used_pctmx[&quot;{#TABLESPACE}&quot;]</key>
+                                    </item>
+                                </graph_item>
+                            </graph_items>
+                        </graph_prototype>
+                    </graph_prototypes>
+                </discovery_rule>
+                <discovery_rule>
+                    <name>Tablespace DiscoveryAL</name>
+                    <type>ODBC</type>
+                    <key>db.odbc.discovery[tbsname,&quot;{$ORACLE.DSN03}&quot;]</key>
+                    <delay>1h</delay>
+                    <params>SELECT&#13;
+tablespace_name AS tablespace,&#13;
+contents  FROM DBA_TABLESPACES;</params>
+                    <username>{$ORACLE.USER}</username>
+                    <password>{$ORACLE.PASSWORD}</password>
+                    <filter>
+                        <conditions>
+                            <condition>
+                                <macro>{#TABLESPACE}</macro>
+                                <value>{$ORACLE.TABLESPACE.NAME.MATCHES}</value>
+                                <formulaid>B</formulaid>
+                            </condition>
+                            <condition>
+                                <macro>{#TABLESPACE}</macro>
+                                <value>{$ORACLE.TABLESPACE.NAME.NOT_MATCHES}</value>
+                                <operator>NOT_MATCHES_REGEX</operator>
+                                <formulaid>A</formulaid>
+                            </condition>
+                        </conditions>
+                    </filter>
+                    <description>Scanning tablespaces in DBMS.</description>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>Oracle TBS ALTPD '{#TABLESPACE}': Tablespace allocated, bytes</name>
+                            <type>DEPENDENT</type>
+                            <key>oracle.tbs_alloc_bytesal[&quot;{#TABLESPACE}&quot;]</key>
+                            <delay>0</delay>
+                            <history>8d</history>
+                            <trends>180d</trends>
+                            <units>B</units>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Oracle {#CONTENTS} Tablespaces. {#TABLESPACE}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$[?(@.TABLESPACE=='{#TABLESPACE}')].USED_BYTES.first()</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN03}&quot;]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Oracle TBS ALTPD '{#TABLESPACE}': Tablespace free, bytes</name>
+                            <type>DEPENDENT</type>
+                            <key>oracle.tbs_free_bytesal[&quot;{#TABLESPACE}&quot;]</key>
+                            <delay>0</delay>
+                            <history>8d</history>
+                            <trends>180d</trends>
+                            <units>B</units>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Oracle {#CONTENTS} Tablespaces. {#TABLESPACE}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$[?(@.TABLESPACE=='{#TABLESPACE}')].FREE_BYTES.first()</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN03}&quot;]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Oracle TBS ALTPD '{#TABLESPACE}': Tablespace MAX size, bytes</name>
+                            <type>DEPENDENT</type>
+                            <key>oracle.tbs_max_bytesal[&quot;{#TABLESPACE}&quot;]</key>
+                            <delay>0</delay>
+                            <history>8d</history>
+                            <trends>180d</trends>
+                            <units>B</units>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Oracle {#CONTENTS} Tablespaces. {#TABLESPACE}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$[?(@.TABLESPACE=='{#TABLESPACE}')].MAX_BYTES.first()</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN03}&quot;]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Oracle TBS ALTPD '{#TABLESPACE}': Open status</name>
+                            <type>DEPENDENT</type>
+                            <key>oracle.tbs_statusal[&quot;{#TABLESPACE}&quot;]</key>
+                            <delay>0</delay>
+                            <history>8d</history>
+                            <trends>180d</trends>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Oracle {#CONTENTS} Tablespaces. {#TABLESPACE}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <valuemap>
+                                <name>Oracle tablespace status</name>
+                            </valuemap>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$[?(@.TABLESPACE=='{#TABLESPACE}')].STATUS.first()</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN03}&quot;]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{diff()}=1</expression>
+                                    <name>Oracle TBS '{#TABLESPACE}': Tablespace status has changed (new value received: {ITEM.VALUE})</name>
+                                    <priority>INFO</priority>
+                                    <description>Oracle tablespace status has changed. Ack to close.</description>
+                                    <manual_close>YES</manual_close>
+                                    <dependencies>
+                                        <dependency>
+                                            <name>Oracle TBS '{#TABLESPACE}': Tablespase is OFFLINE - ({$ORACLE.DSN03})</name>
+                                            <expression>{Template oracleDB - MANDIC - Allcare:oracle.tbs_statusal[&quot;{#TABLESPACE}&quot;].last()}=2</expression>
+                                        </dependency>
+                                    </dependencies>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <expression>{last()}=2</expression>
+                                    <name>Oracle TBS '{#TABLESPACE}': Tablespase is OFFLINE - ({$ORACLE.DSN03})</name>
+                                    <priority>HIGH</priority>
+                                    <description>The tablespase is in the offline state.</description>
+                                    <manual_close>YES</manual_close>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Oracle TBS ALTPD '{#TABLESPACE}': Tablespace usage percent</name>
+                            <type>DEPENDENT</type>
+                            <key>oracle.tbs_used_pctal[&quot;{#TABLESPACE}&quot;]</key>
+                            <delay>0</delay>
+                            <history>8d</history>
+                            <trends>180d</trends>
+                            <value_type>FLOAT</value_type>
+                            <units>%</units>
+                            <description>Allocated bytes/Max bytes*100</description>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Oracle {#CONTENTS} Tablespaces. {#TABLESPACE}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$[?(@.TABLESPACE=='{#TABLESPACE}')].USED_PCT.first()</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN03}&quot;]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{min(5m)}&gt;{$ORACLE.TBS.USED.PCT.MAX.HIGH}</expression>
+                                    <name>Oracle TBS '{#TABLESPACE}': Tablespace Usage is too high (over {$ORACLE.TBS.USED.PCT.MAX.HIGH}% for 5m). ({$ORACLE.DSN03})</name>
+                                    <priority>HIGH</priority>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <expression>{min(5m)}&gt;{$ORACLE.TBS.USED.PCT.MAX.WARN}</expression>
+                                    <name>Oracle TBS '{#TABLESPACE}': Tablespace usage is too high (over {$ORACLE.TBS.USED.PCT.MAX.WARN}% for 5m). ({$ORACLE.DSN03})</name>
+                                    <priority>WARNING</priority>
+                                    <dependencies>
+                                        <dependency>
+                                            <name>Oracle TBS '{#TABLESPACE}': Tablespace Usage is too high (over {$ORACLE.TBS.USED.PCT.MAX.HIGH}% for 5m). ({$ORACLE.DSN03})</name>
+                                            <expression>{Template oracleDB - MANDIC - Allcare:oracle.tbs_used_pctal[&quot;{#TABLESPACE}&quot;].min(5m)}&gt;{$ORACLE.TBS.USED.PCT.MAX.HIGH}</expression>
+                                        </dependency>
+                                    </dependencies>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                    </item_prototypes>
+                    <graph_prototypes>
+                        <graph_prototype>
+                            <name>Oracle TBS '{#TABLESPACE}': Tablespace '{#TABLESPACE}' ALTPD</name>
+                            <graph_items>
+                                <graph_item>
+                                    <color>FFFF00</color>
+                                    <item>
+                                        <host>Template oracleDB - MANDIC - Allcare</host>
+                                        <key>oracle.tbs_alloc_bytesal[&quot;{#TABLESPACE}&quot;]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>1</sortorder>
+                                    <color>4CAF50</color>
+                                    <item>
+                                        <host>Template oracleDB - MANDIC - Allcare</host>
+                                        <key>oracle.tbs_max_bytesal[&quot;{#TABLESPACE}&quot;]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>2</sortorder>
+                                    <drawtype>DASHED_LINE</drawtype>
+                                    <color>F44336</color>
+                                    <yaxisside>RIGHT</yaxisside>
+                                    <item>
+                                        <host>Template oracleDB - MANDIC - Allcare</host>
+                                        <key>oracle.tbs_used_pctal[&quot;{#TABLESPACE}&quot;]</key>
+                                    </item>
+                                </graph_item>
+                            </graph_items>
+                        </graph_prototype>
+                    </graph_prototypes>
+                </discovery_rule>
+                <discovery_rule>
+                    <name>Tablespace DiscoveryCU</name>
+                    <type>ODBC</type>
+                    <key>db.odbc.discovery[tbsname,&quot;{$ORACLE.DSN04}&quot;]</key>
+                    <delay>1h</delay>
+                    <params>SELECT&#13;
+tablespace_name AS tablespace,&#13;
+contents  FROM DBA_TABLESPACES;</params>
+                    <username>{$ORACLE.USER}</username>
+                    <password>{$ORACLE.PASSWORD}</password>
+                    <filter>
+                        <conditions>
+                            <condition>
+                                <macro>{#TABLESPACE}</macro>
+                                <value>{$ORACLE.TABLESPACE.NAME.MATCHES}</value>
+                                <formulaid>B</formulaid>
+                            </condition>
+                            <condition>
+                                <macro>{#TABLESPACE}</macro>
+                                <value>{$ORACLE.TABLESPACE.NAME.NOT_MATCHES}</value>
+                                <operator>NOT_MATCHES_REGEX</operator>
+                                <formulaid>A</formulaid>
+                            </condition>
+                        </conditions>
+                    </filter>
+                    <description>Scanning tablespaces in DBMS.</description>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>Oracle TBS CUBPD '{#TABLESPACE}': Tablespace allocated, bytes</name>
+                            <type>DEPENDENT</type>
+                            <key>oracle.tbs_alloc_bytescu[&quot;{#TABLESPACE}&quot;]</key>
+                            <delay>0</delay>
+                            <history>8d</history>
+                            <trends>180d</trends>
+                            <units>B</units>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Oracle {#CONTENTS} Tablespaces. {#TABLESPACE}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$[?(@.TABLESPACE=='{#TABLESPACE}')].USED_BYTES.first()</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN04}&quot;]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Oracle TBS CUBPD '{#TABLESPACE}': Tablespace free, bytes</name>
+                            <type>DEPENDENT</type>
+                            <key>oracle.tbs_free_bytescu[&quot;{#TABLESPACE}&quot;]</key>
+                            <delay>0</delay>
+                            <history>8d</history>
+                            <trends>180d</trends>
+                            <units>B</units>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Oracle {#CONTENTS} Tablespaces. {#TABLESPACE}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$[?(@.TABLESPACE=='{#TABLESPACE}')].FREE_BYTES.first()</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN04}&quot;]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Oracle TBS CUBPD '{#TABLESPACE}': Tablespace MAX size, bytes</name>
+                            <type>DEPENDENT</type>
+                            <key>oracle.tbs_max_bytescu[&quot;{#TABLESPACE}&quot;]</key>
+                            <delay>0</delay>
+                            <history>8d</history>
+                            <trends>180d</trends>
+                            <units>B</units>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Oracle {#CONTENTS} Tablespaces. {#TABLESPACE}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$[?(@.TABLESPACE=='{#TABLESPACE}')].MAX_BYTES.first()</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN04}&quot;]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Oracle TBS CUBPD'{#TABLESPACE}': Open status</name>
+                            <type>DEPENDENT</type>
+                            <key>oracle.tbs_statuscu[&quot;{#TABLESPACE}&quot;]</key>
+                            <delay>0</delay>
+                            <history>8d</history>
+                            <trends>180d</trends>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Oracle {#CONTENTS} Tablespaces. {#TABLESPACE}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <valuemap>
+                                <name>Oracle tablespace status</name>
+                            </valuemap>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$[?(@.TABLESPACE=='{#TABLESPACE}')].STATUS.first()</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN04}&quot;]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{last()}=2</expression>
+                                    <name>Oracle TBS '{#TABLESPACE}': Tablespace is OFFLINE - ({$ORACLE.DSN04})</name>
+                                    <priority>HIGH</priority>
+                                    <description>The tablespase is in the offline state.</description>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <expression>{diff()}=1</expression>
+                                    <name>Oracle TBS '{#TABLESPACE}': Tablespace status has changed (new value received: {ITEM.VALUE}-{$ORACLE.DSN04})</name>
+                                    <priority>INFO</priority>
+                                    <description>Oracle tablespace status has changed. Ack to close.</description>
+                                    <manual_close>YES</manual_close>
+                                    <dependencies>
+                                        <dependency>
+                                            <name>Oracle TBS '{#TABLESPACE}': Tablespace is OFFLINE - ({$ORACLE.DSN04})</name>
+                                            <expression>{Template oracleDB - MANDIC - Allcare:oracle.tbs_statuscu[&quot;{#TABLESPACE}&quot;].last()}=2</expression>
+                                        </dependency>
+                                    </dependencies>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Oracle TBS CUBPD '{#TABLESPACE}': Tablespace usage percent</name>
+                            <type>DEPENDENT</type>
+                            <key>oracle.tbs_used_pctcu[&quot;{#TABLESPACE}&quot;]</key>
+                            <delay>0</delay>
+                            <history>8d</history>
+                            <trends>180d</trends>
+                            <value_type>FLOAT</value_type>
+                            <units>%</units>
+                            <description>Allocated bytes/Max bytes*100</description>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Oracle {#CONTENTS} Tablespaces. {#TABLESPACE}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$[?(@.TABLESPACE=='{#TABLESPACE}')].USED_PCT.first()</params>
+                                </step>
+                                <step>
+                                    <type>REGEX</type>
+                                    <params>(|[0-9]+),([0-9]+)
+\1.\2</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN04}&quot;]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{min(5m)}&gt;{$ORACLE.TBS.USED.PCT.MAX.HIGH}</expression>
+                                    <name>Oracle TBS '{#TABLESPACE}': Tablespace Usage is too high (over {$ORACLE.TBS.USED.PCT.MAX.HIGH}% for 5m). ({$ORACLE.DSN04})</name>
+                                    <priority>HIGH</priority>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <expression>{min(5m)}&gt;{$ORACLE.TBS.USED.PCT.MAX.WARN}</expression>
+                                    <name>Oracle TBS '{#TABLESPACE}': Tablespace usage is too high (over {$ORACLE.TBS.USED.PCT.MAX.WARN}% for 5m). ({$ORACLE.DSN04})</name>
+                                    <priority>WARNING</priority>
+                                    <dependencies>
+                                        <dependency>
+                                            <name>Oracle TBS '{#TABLESPACE}': Tablespace Usage is too high (over {$ORACLE.TBS.USED.PCT.MAX.HIGH}% for 5m). ({$ORACLE.DSN04})</name>
+                                            <expression>{Template oracleDB - MANDIC - Allcare:oracle.tbs_used_pctcu[&quot;{#TABLESPACE}&quot;].min(5m)}&gt;{$ORACLE.TBS.USED.PCT.MAX.HIGH}</expression>
+                                        </dependency>
+                                    </dependencies>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                    </item_prototypes>
+                    <graph_prototypes>
+                        <graph_prototype>
+                            <name>Oracle TBS '{#TABLESPACE}': Tablespace '{#TABLESPACE}' CUBPD</name>
+                            <graph_items>
+                                <graph_item>
+                                    <color>FFFF00</color>
+                                    <item>
+                                        <host>Template oracleDB - MANDIC - Allcare</host>
+                                        <key>oracle.tbs_alloc_bytescu[&quot;{#TABLESPACE}&quot;]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>1</sortorder>
+                                    <color>388E3C</color>
+                                    <item>
+                                        <host>Template oracleDB - MANDIC - Allcare</host>
+                                        <key>oracle.tbs_max_bytescu[&quot;{#TABLESPACE}&quot;]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>2</sortorder>
+                                    <drawtype>DASHED_LINE</drawtype>
+                                    <color>E53935</color>
+                                    <yaxisside>RIGHT</yaxisside>
+                                    <item>
+                                        <host>Template oracleDB - MANDIC - Allcare</host>
+                                        <key>oracle.tbs_used_pctcu[&quot;{#TABLESPACE}&quot;]</key>
+                                    </item>
+                                </graph_item>
+                            </graph_items>
+                        </graph_prototype>
+                    </graph_prototypes>
+                </discovery_rule>
+                <discovery_rule>
+                    <name>Tablespace DiscoveryTP</name>
+                    <type>ODBC</type>
+                    <key>db.odbc.discovery[tbsname,&quot;{$ORACLE.DSN05}&quot;]</key>
+                    <delay>1h</delay>
+                    <params>SELECT&#13;
+tablespace_name AS tablespace,&#13;
+contents  FROM DBA_TABLESPACES;</params>
+                    <username>{$ORACLE.USER}</username>
+                    <password>{$ORACLE.PASSWORD}</password>
+                    <filter>
+                        <conditions>
+                            <condition>
+                                <macro>{#TABLESPACE}</macro>
+                                <value>{$ORACLE.TABLESPACE.NAME.MATCHES}</value>
+                                <formulaid>B</formulaid>
+                            </condition>
+                            <condition>
+                                <macro>{#TABLESPACE}</macro>
+                                <value>{$ORACLE.TABLESPACE.NAME.NOT_MATCHES}</value>
+                                <operator>NOT_MATCHES_REGEX</operator>
+                                <formulaid>A</formulaid>
+                            </condition>
+                        </conditions>
+                    </filter>
+                    <description>Scanning tablespaces in DBMS.</description>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>Oracle TBS TPAPD '{#TABLESPACE}': Tablespace allocated, bytes</name>
+                            <type>DEPENDENT</type>
+                            <key>oracle.tbs_alloc_bytestp[&quot;{#TABLESPACE}&quot;]</key>
+                            <delay>0</delay>
+                            <history>8d</history>
+                            <trends>180d</trends>
+                            <units>B</units>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Oracle {#CONTENTS} Tablespaces. {#TABLESPACE}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$[?(@.TABLESPACE=='{#TABLESPACE}')].USED_BYTES.first()</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN05}&quot;]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Oracle TBS TPAPD '{#TABLESPACE}': Tablespace free, bytes</name>
+                            <type>DEPENDENT</type>
+                            <key>oracle.tbs_free_bytestp[&quot;{#TABLESPACE}&quot;]</key>
+                            <delay>0</delay>
+                            <history>8d</history>
+                            <trends>180d</trends>
+                            <units>B</units>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Oracle {#CONTENTS} Tablespaces. {#TABLESPACE}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$[?(@.TABLESPACE=='{#TABLESPACE}')].FREE_BYTES.first()</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN05}&quot;]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Oracle TBS TPAPD '{#TABLESPACE}': Tablespace MAX size, bytes</name>
+                            <type>DEPENDENT</type>
+                            <key>oracle.tbs_max_bytestp[&quot;{#TABLESPACE}&quot;]</key>
+                            <delay>0</delay>
+                            <history>8d</history>
+                            <trends>180d</trends>
+                            <units>B</units>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Oracle {#CONTENTS} Tablespaces. {#TABLESPACE}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$[?(@.TABLESPACE=='{#TABLESPACE}')].MAX_BYTES.first()</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN05}&quot;]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Oracle TBS TPAPD '{#TABLESPACE}': Open status</name>
+                            <type>DEPENDENT</type>
+                            <key>oracle.tbs_statustp[&quot;{#TABLESPACE}&quot;]</key>
+                            <delay>0</delay>
+                            <history>8d</history>
+                            <trends>180d</trends>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Oracle {#CONTENTS} Tablespaces. {#TABLESPACE}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <valuemap>
+                                <name>Oracle tablespace status</name>
+                            </valuemap>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$[?(@.TABLESPACE=='{#TABLESPACE}')].STATUS.first()</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN05}&quot;]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{diff()}=1</expression>
+                                    <name>Oracle TBS '{#TABLESPACE}': Tablespace status has changed (new value received: {ITEM.VALUE}-{$ORACLE.DSN05})</name>
+                                    <priority>INFO</priority>
+                                    <description>Oracle tablespace status has changed. Ack to close.</description>
+                                    <dependencies>
+                                        <dependency>
+                                            <name>Oracle TBS '{#TABLESPACE}': Tablespase is OFFLINE - ({$ORACLE.DSN05})</name>
+                                            <expression>{Template oracleDB - MANDIC - Allcare:oracle.tbs_statustp[&quot;{#TABLESPACE}&quot;].last()}=2</expression>
+                                        </dependency>
+                                    </dependencies>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <expression>{last()}=2</expression>
+                                    <name>Oracle TBS '{#TABLESPACE}': Tablespase is OFFLINE - ({$ORACLE.DSN05})</name>
+                                    <priority>HIGH</priority>
+                                    <description>The tablespase is in the offline state.</description>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Oracle TBS TPAPD '{#TABLESPACE}': Tablespace usage percent</name>
+                            <type>DEPENDENT</type>
+                            <key>oracle.tbs_used_pcttp[&quot;{#TABLESPACE}&quot;]</key>
+                            <delay>0</delay>
+                            <history>8d</history>
+                            <trends>180d</trends>
+                            <value_type>FLOAT</value_type>
+                            <units>%</units>
+                            <description>Allocated bytes/Max bytes*100</description>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Oracle {#CONTENTS} Tablespaces. {#TABLESPACE}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$[?(@.TABLESPACE=='{#TABLESPACE}')].USED_PCT.first()</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN05}&quot;]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{min(5m)}&gt;{$ORACLE.TBS.USED.PCT.MAX.HIGH}</expression>
+                                    <name>Oracle TBS '{#TABLESPACE}': Tablespace Usage is too high (over {$ORACLE.TBS.USED.PCT.MAX.HIGH}% for 5m). ({$ORACLE.DSN05})</name>
+                                    <priority>HIGH</priority>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <expression>{min(5m)}&gt;{$ORACLE.TBS.USED.PCT.MAX.WARN}</expression>
+                                    <name>Oracle TBS '{#TABLESPACE}': Tablespace usage is too high (over {$ORACLE.TBS.USED.PCT.MAX.WARN}% for 5m). ({$ORACLE.DSN05})</name>
+                                    <priority>WARNING</priority>
+                                    <dependencies>
+                                        <dependency>
+                                            <name>Oracle TBS '{#TABLESPACE}': Tablespace Usage is too high (over {$ORACLE.TBS.USED.PCT.MAX.HIGH}% for 5m). ({$ORACLE.DSN05})</name>
+                                            <expression>{Template oracleDB - MANDIC - Allcare:oracle.tbs_used_pcttp[&quot;{#TABLESPACE}&quot;].min(5m)}&gt;{$ORACLE.TBS.USED.PCT.MAX.HIGH}</expression>
+                                        </dependency>
+                                    </dependencies>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                    </item_prototypes>
+                    <graph_prototypes>
+                        <graph_prototype>
+                            <name>Oracle TBS '{#TABLESPACE}': Tablespace '{#TABLESPACE}' TPAPD</name>
+                            <graph_items>
+                                <graph_item>
+                                    <color>FFFF00</color>
+                                    <item>
+                                        <host>Template oracleDB - MANDIC - Allcare</host>
+                                        <key>oracle.tbs_alloc_bytestp[&quot;{#TABLESPACE}&quot;]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>1</sortorder>
+                                    <color>388E3C</color>
+                                    <item>
+                                        <host>Template oracleDB - MANDIC - Allcare</host>
+                                        <key>oracle.tbs_max_bytestp[&quot;{#TABLESPACE}&quot;]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>2</sortorder>
+                                    <drawtype>DASHED_LINE</drawtype>
+                                    <color>E53935</color>
+                                    <yaxisside>RIGHT</yaxisside>
+                                    <item>
+                                        <host>Template oracleDB - MANDIC - Allcare</host>
+                                        <key>oracle.tbs_used_pcttp[&quot;{#TABLESPACE}&quot;]</key>
+                                    </item>
+                                </graph_item>
+                            </graph_items>
+                        </graph_prototype>
+                    </graph_prototypes>
+                </discovery_rule>
+                <discovery_rule>
+                    <name>Tablespace discoveryDV</name>
+                    <type>ODBC</type>
+                    <key>db.odbc.discovery[tbsname,&quot;{$ORACLE.DSN06}&quot;]</key>
+                    <delay>1h</delay>
+                    <params>SELECT&#13;
+tablespace_name AS tablespace,&#13;
+contents  FROM DBA_TABLESPACES;</params>
+                    <username>{$ORACLE.USER}</username>
+                    <password>{$ORACLE.PASSWORD}</password>
+                    <filter>
+                        <conditions>
+                            <condition>
+                                <macro>{#TABLESPACE}</macro>
+                                <value>{$ORACLE.TABLESPACE.NAME.MATCHES}</value>
+                                <formulaid>B</formulaid>
+                            </condition>
+                            <condition>
+                                <macro>{#TABLESPACE}</macro>
+                                <value>{$ORACLE.TABLESPACE.NAME.NOT_MATCHES}</value>
+                                <operator>NOT_MATCHES_REGEX</operator>
+                                <formulaid>A</formulaid>
+                            </condition>
+                        </conditions>
+                    </filter>
+                    <description>Scanning tablespaces in DBMS.</description>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>Oracle TBS TOTDV '{#TABLESPACE}': Tablespace allocated, bytes</name>
+                            <type>DEPENDENT</type>
+                            <key>oracle.tbs_alloc_bytesdv[&quot;{#TABLESPACE}&quot;]</key>
+                            <delay>0</delay>
+                            <history>8d</history>
+                            <trends>180d</trends>
+                            <units>B</units>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Oracle {#CONTENTS} Tablespaces. {#TABLESPACE}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$[?(@.TABLESPACE=='{#TABLESPACE}')].USED_BYTES.first()</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN06}&quot;]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Oracle TBS TOTDV '{#TABLESPACE}': Tablespace free, bytes</name>
+                            <type>DEPENDENT</type>
+                            <key>oracle.tbs_free_bytesdv[&quot;{#TABLESPACE}&quot;]</key>
+                            <delay>0</delay>
+                            <history>8d</history>
+                            <trends>180d</trends>
+                            <units>B</units>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Oracle {#CONTENTS} Tablespaces. {#TABLESPACE}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$[?(@.TABLESPACE=='{#TABLESPACE}')].FREE_BYTES.first()</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN06}&quot;]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Oracle TBS TOTDV '{#TABLESPACE}': Tablespace MAX size, bytes</name>
+                            <type>DEPENDENT</type>
+                            <key>oracle.tbs_max_bytesdv[&quot;{#TABLESPACE}&quot;]</key>
+                            <delay>0</delay>
+                            <history>8d</history>
+                            <trends>180d</trends>
+                            <units>B</units>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Oracle {#CONTENTS} Tablespaces. {#TABLESPACE}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$[?(@.TABLESPACE=='{#TABLESPACE}')].MAX_BYTES.first()</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN06}&quot;]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Oracle TBS TOTDV '{#TABLESPACE}': Open status</name>
+                            <type>DEPENDENT</type>
+                            <key>oracle.tbs_statusdv[&quot;{#TABLESPACE}&quot;]</key>
+                            <delay>0</delay>
+                            <history>8d</history>
+                            <trends>180d</trends>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Oracle {#CONTENTS} Tablespaces. {#TABLESPACE}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <valuemap>
+                                <name>Oracle tablespace status</name>
+                            </valuemap>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$[?(@.TABLESPACE=='{#TABLESPACE}')].STATUS.first()</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN06}&quot;]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{diff()}=1</expression>
+                                    <name>Oracle TBS '{#TABLESPACE}': Tablespace status has changed (new value received: {ITEM.VALUE}-{$ORACLE.DSN06})</name>
+                                    <priority>INFO</priority>
+                                    <description>Oracle tablespace status has changed. Ack to close.</description>
+                                    <manual_close>YES</manual_close>
+                                    <dependencies>
+                                        <dependency>
+                                            <name>Oracle TBS '{#TABLESPACE}': Tablespase is OFFLINE - ({$ORACLE.DSN06})</name>
+                                            <expression>{Template oracleDB - MANDIC - Allcare:oracle.tbs_statusdv[&quot;{#TABLESPACE}&quot;].last()}=2</expression>
+                                        </dependency>
+                                    </dependencies>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <expression>{last()}=2</expression>
+                                    <name>Oracle TBS '{#TABLESPACE}': Tablespase is OFFLINE - ({$ORACLE.DSN06})</name>
+                                    <priority>HIGH</priority>
+                                    <description>The tablespase is in the offline state.</description>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Oracle TBS TOTDV '{#TABLESPACE}': Tablespace usage percent</name>
+                            <type>DEPENDENT</type>
+                            <key>oracle.tbs_used_pctdv[&quot;{#TABLESPACE}&quot;]</key>
+                            <delay>0</delay>
+                            <history>8d</history>
+                            <trends>180d</trends>
+                            <value_type>FLOAT</value_type>
+                            <units>%</units>
+                            <description>Allocated bytes/Max bytes*100</description>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Oracle {#CONTENTS} Tablespaces. {#TABLESPACE}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$[?(@.TABLESPACE=='{#TABLESPACE}')].USED_PCT.first()</params>
+                                </step>
+                                <step>
+                                    <type>REGEX</type>
+                                    <params>(|[0-9]+),([0-9]+)
+\1.\2</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN06}&quot;]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{min(5m)}&gt;{$ORACLE.TBS.USED.PCT.MAX.HIGH}</expression>
+                                    <name>Oracle TBS '{#TABLESPACE}': Tablespace Usage is too high (over {$ORACLE.TBS.USED.PCT.MAX.HIGH}% for 5m). ({$ORACLE.DSN06})</name>
+                                    <priority>HIGH</priority>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <expression>{min(5m)}&gt;{$ORACLE.TBS.USED.PCT.MAX.WARN}</expression>
+                                    <name>Oracle TBS '{#TABLESPACE}': Tablespace usage is too high (over {$ORACLE.TBS.USED.PCT.MAX.WARN}% for 5m). ({$ORACLE.DSN06})</name>
+                                    <priority>WARNING</priority>
+                                    <dependencies>
+                                        <dependency>
+                                            <name>Oracle TBS '{#TABLESPACE}': Tablespace Usage is too high (over {$ORACLE.TBS.USED.PCT.MAX.HIGH}% for 5m). ({$ORACLE.DSN06})</name>
+                                            <expression>{Template oracleDB - MANDIC - Allcare:oracle.tbs_used_pctdv[&quot;{#TABLESPACE}&quot;].min(5m)}&gt;{$ORACLE.TBS.USED.PCT.MAX.HIGH}</expression>
+                                        </dependency>
+                                    </dependencies>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                    </item_prototypes>
+                    <graph_prototypes>
+                        <graph_prototype>
+                            <name>Oracle TBS '{#TABLESPACE}': Tablespace '{#TABLESPACE}' TOTDV</name>
+                            <percent_right>100.0000</percent_right>
+                            <graph_items>
+                                <graph_item>
+                                    <color>FFFF00</color>
+                                    <item>
+                                        <host>Template oracleDB - MANDIC - Allcare</host>
+                                        <key>oracle.tbs_alloc_bytesdv[&quot;{#TABLESPACE}&quot;]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>1</sortorder>
+                                    <color>388E3C</color>
+                                    <item>
+                                        <host>Template oracleDB - MANDIC - Allcare</host>
+                                        <key>oracle.tbs_max_bytesdv[&quot;{#TABLESPACE}&quot;]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>2</sortorder>
+                                    <drawtype>GRADIENT_LINE</drawtype>
+                                    <color>E53935</color>
+                                    <yaxisside>RIGHT</yaxisside>
+                                    <item>
+                                        <host>Template oracleDB - MANDIC - Allcare</host>
+                                        <key>oracle.tbs_used_pctdv[&quot;{#TABLESPACE}&quot;]</key>
+                                    </item>
+                                </graph_item>
+                            </graph_items>
+                        </graph_prototype>
+                    </graph_prototypes>
+                </discovery_rule>
+                <discovery_rule>
+                    <name>Tablespace discoveryPD</name>
+                    <type>ODBC</type>
+                    <key>db.odbc.discovery[tbsname,&quot;{$ORACLE.DSN}&quot;]</key>
+                    <delay>1h</delay>
+                    <params>SELECT&#13;
+tablespace_name AS tablespace,&#13;
+contents  FROM DBA_TABLESPACES;</params>
+                    <username>{$ORACLE.USER}</username>
+                    <password>{$ORACLE.PASSWORD}</password>
+                    <filter>
+                        <conditions>
+                            <condition>
+                                <macro>{#TABLESPACE}</macro>
+                                <value>{$ORACLE.TABLESPACE.NAME.MATCHES}</value>
+                                <formulaid>B</formulaid>
+                            </condition>
+                            <condition>
+                                <macro>{#TABLESPACE}</macro>
+                                <value>{$ORACLE.TABLESPACE.NAME.NOT_MATCHES}</value>
+                                <operator>NOT_MATCHES_REGEX</operator>
+                                <formulaid>A</formulaid>
+                            </condition>
+                        </conditions>
+                    </filter>
+                    <description>Scanning tablespaces in DBMS.</description>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>Oracle TBS TOTPD '{#TABLESPACE}': Tablespace allocated, bytes</name>
+                            <type>DEPENDENT</type>
+                            <key>oracle.tbs_alloc_bytes[&quot;{#TABLESPACE}&quot;]</key>
+                            <delay>0</delay>
+                            <history>7d</history>
+                            <units>B</units>
+                            <description>Currently allocated bytes for tablespace (sum of the current size of datafiles).</description>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Oracle {#CONTENTS} Tablespaces. {#TABLESPACE}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$[?(@.TABLESPACE=='{#TABLESPACE}')].USED_BYTES.first()</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN}&quot;]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Oracle TBS  TOTPD '{#TABLESPACE}': Tablespace free, bytes</name>
+                            <type>DEPENDENT</type>
+                            <key>oracle.tbs_free_bytes[&quot;{#TABLESPACE}&quot;]</key>
+                            <delay>0</delay>
+                            <history>7d</history>
+                            <units>B</units>
+                            <description>Free bytes of allocated space.</description>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Oracle {#CONTENTS} Tablespaces. {#TABLESPACE}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$[?(@.TABLESPACE=='{#TABLESPACE}')].FREE_BYTES.first()</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN}&quot;]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Oracle TBS  TOTPD '{#TABLESPACE}': Tablespace MAX size, bytes</name>
+                            <type>DEPENDENT</type>
+                            <key>oracle.tbs_max_bytes[&quot;{#TABLESPACE}&quot;]</key>
+                            <delay>0</delay>
+                            <history>7d</history>
+                            <units>B</units>
+                            <description>Maximum size of tablespace.</description>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Oracle {#CONTENTS} Tablespaces. {#TABLESPACE}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$[?(@.TABLESPACE=='{#TABLESPACE}')].MAX_BYTES.first()</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN}&quot;]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Oracle TBS TOTPD '{#TABLESPACE}': Open status</name>
+                            <type>DEPENDENT</type>
+                            <key>oracle.tbs_status[&quot;{#TABLESPACE}&quot;]</key>
+                            <delay>0</delay>
+                            <history>7d</history>
+                            <description>Tablespace status. 1 - 'ONLINE' 2 - 'OFFLINE' 3- 'READ ONLY'</description>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Oracle {#CONTENTS} Tablespaces. {#TABLESPACE}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <valuemap>
+                                <name>Oracle tablespace status</name>
+                            </valuemap>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$[?(@.TABLESPACE=='{#TABLESPACE}')].STATUS.first()</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN}&quot;]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{diff()}=1</expression>
+                                    <name>Oracle TBS '{#TABLESPACE}': Tablespace status has changed (new value received: {ITEM.VALUE})</name>
+                                    <priority>INFO</priority>
+                                    <description>Oracle tablespace status has changed. Ack to close.</description>
+                                    <dependencies>
+                                        <dependency>
+                                            <name>Oracle TBS '{#TABLESPACE}': Tablespase is OFFLINE - ({$ORACLE.DSN})</name>
+                                            <expression>{Template oracleDB - MANDIC - Allcare:oracle.tbs_status[&quot;{#TABLESPACE}&quot;].last()}=2</expression>
+                                        </dependency>
+                                    </dependencies>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <expression>{last()}=2</expression>
+                                    <name>Oracle TBS '{#TABLESPACE}': Tablespase is OFFLINE - ({$ORACLE.DSN})</name>
+                                    <priority>HIGH</priority>
+                                    <description>The tablespase is in the offline state.</description>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Oracle TBS  TOTPD '{#TABLESPACE}': Tablespace usage percent</name>
+                            <type>DEPENDENT</type>
+                            <key>oracle.tbs_used_pct[&quot;{#TABLESPACE}&quot;]</key>
+                            <delay>0</delay>
+                            <history>7d</history>
+                            <value_type>FLOAT</value_type>
+                            <units>%</units>
+                            <description>Allocated bytes/Max bytes*100</description>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Oracle {#CONTENTS} Tablespaces. {#TABLESPACE}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$[?(@.TABLESPACE=='{#TABLESPACE}')].USED_PCT.first()</params>
+                                </step>
+                                <step>
+                                    <type>REGEX</type>
+                                    <params>(|[0-9]+),([0-9|]+)
+\1.\2</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>db.odbc.get[tablespace_stats,&quot;{$ORACLE.DSN}&quot;]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{min(5m)}&gt;{$ORACLE.TBS.USED.PCT.MAX.HIGH}</expression>
+                                    <name>Oracle TBS '{#TABLESPACE}': Tablespace Usage is too high (over {$ORACLE.TBS.USED.PCT.MAX.HIGH}% for 5m). ({$ORACLE.DSN})</name>
+                                    <priority>HIGH</priority>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <expression>{min(5m)}&gt;{$ORACLE.TBS.USED.PCT.MAX.WARN}</expression>
+                                    <name>Oracle TBS '{#TABLESPACE}': Tablespace usage is too high (over {$ORACLE.TBS.USED.PCT.MAX.WARN}% for 5m). ({$ORACLE.DSN})</name>
+                                    <priority>WARNING</priority>
+                                    <dependencies>
+                                        <dependency>
+                                            <name>Oracle TBS '{#TABLESPACE}': Tablespace Usage is too high (over {$ORACLE.TBS.USED.PCT.MAX.HIGH}% for 5m). ({$ORACLE.DSN})</name>
+                                            <expression>{Template oracleDB - MANDIC - Allcare:oracle.tbs_used_pct[&quot;{#TABLESPACE}&quot;].min(5m)}&gt;{$ORACLE.TBS.USED.PCT.MAX.HIGH}</expression>
+                                        </dependency>
+                                    </dependencies>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                    </item_prototypes>
+                    <graph_prototypes>
+                        <graph_prototype>
+                            <name>Oracle TBS '{#TABLESPACE}': Tablespace '{#TABLESPACE}' TOTPD</name>
+                            <graph_items>
+                                <graph_item>
+                                    <color>FFFF00</color>
+                                    <item>
+                                        <host>Template oracleDB - MANDIC - Allcare</host>
+                                        <key>oracle.tbs_alloc_bytes[&quot;{#TABLESPACE}&quot;]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>1</sortorder>
+                                    <color>388E3C</color>
+                                    <item>
+                                        <host>Template oracleDB - MANDIC - Allcare</host>
+                                        <key>oracle.tbs_max_bytes[&quot;{#TABLESPACE}&quot;]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>2</sortorder>
+                                    <drawtype>DASHED_LINE</drawtype>
+                                    <color>F44336</color>
+                                    <yaxisside>RIGHT</yaxisside>
+                                    <item>
+                                        <host>Template oracleDB - MANDIC - Allcare</host>
+                                        <key>oracle.tbs_used_pct[&quot;{#TABLESPACE}&quot;]</key>
+                                    </item>
+                                </graph_item>
+                            </graph_items>
+                        </graph_prototype>
+                    </graph_prototypes>
+                </discovery_rule>
+            </discovery_rules>
+            <macros>
+                <macro>
+                    <macro>{$ORACLE.TBS.USED.PCT.MAX.HIGH}</macro>
+                    <value>95</value>
+                </macro>
+                <macro>
+                    <macro>{$ORACLE.TBS.USED.PCT.MAX.WARN}</macro>
+                    <value>90</value>
+                </macro>
+            </macros>
+        </template>
+    </templates>
+    <value_maps>
+        <value_map>
+            <name>Oracle tablespace status</name>
+            <mappings>
+                <mapping>
+                    <value>0</value>
+                    <newvalue>Unknown</newvalue>
+                </mapping>
+                <mapping>
+                    <value>1</value>
+                    <newvalue>Online</newvalue>
+                </mapping>
+                <mapping>
+                    <value>2</value>
+                    <newvalue>Offline</newvalue>
+                </mapping>
+                <mapping>
+                    <value>3</value>
+                    <newvalue>Read-Only</newvalue>
+                </mapping>
+            </mappings>
+        </value_map>
+    </value_maps>
+</zabbix_export>
