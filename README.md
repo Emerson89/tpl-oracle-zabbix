@@ -1,5 +1,5 @@
 # Monitoramento por ODBC Banco de dados Oracle no Zabbix
-
+## Para este cenário o monitoramento foi das tablespaces
 ## Requisitos
 
 ## Zabbix-server 4.4
