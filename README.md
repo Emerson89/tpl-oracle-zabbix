@@ -49,13 +49,13 @@ Driver = oracle
 DSN = db01
 ServerName = TOTPD
 UserID = system
-Password = Mandic123
+Password = Test123
 [db02]
 Driver = oracle
 DSN = db02
 ServerName = MXMPD
 UserID = system
-Password = Mandic123
+Password = Test123
 ```
 ## 5 – Crie diretório que será utilizado pelo arquivo tnsnames.ora 
 ```
