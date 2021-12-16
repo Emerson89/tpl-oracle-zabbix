@@ -1,15 +1,18 @@
 # Monitoramento por ODBC Banco de dados Oracle no Zabbix
-## Para este cenário o monitoramento foi das tablespaces
+## Monitoramento tablespaces, jobs e schedules jobs
+
 ## Requisitos
 
 ## Zabbix-server 4.4
-## Centos 7
 
 O monitoramento ODBC corresponde ao tipo de item do monitor de banco de dados no frontend do Zabbix.
 ODBC é uma API de middleware da linguagem de programação C para acessar sistemas de gerenciamento de banco de dados (DBMS). O conceito ODBC foi desenvolvido pela Microsoft e posteriormente transportado para outras plataformas.
 O Zabbix pode consultar qualquer banco de dados, que seja compatível com ODBC. Para fazer isso, o Zabbix não se conecta diretamente aos bancos de dados, mas usa a interface ODBC e os drivers configurados no ODBC. Essa função permite o monitoramento mais eficiente de diferentes bancos de dados para diversos fins - por exemplo, verificar filas de banco de dados específicas, estatísticas de uso e assim por diante.
 
-# Como Instalar 
+# Configurar odbc oracle 
+
+## Dependencias 
+- Centos 7
 
 ## 1 - Instalar unixODBC 
 ```
@@ -47,13 +50,13 @@ vim /etc/obdc.ini
 [db01]
 Driver = oracle
 DSN = db01
-ServerName = TOTPD
+ServerName = SERVER01
 UserID = system
 Password = Test123
 [db02]
 Driver = oracle
 DSN = db02
-ServerName = MXMPD
+ServerName = SERVER01
 UserID = system
 Password = Test123
 ```
@@ -66,21 +69,21 @@ mkdir /etc/oracle
 vim /etc/oracle/tnsnames.ora
 
 ###Álias que teve seguir conforme colocado no arquivo odbc.ini
-TOTPD =
+SERVER01 =
   (DESCRIPTION =
     (ADDRESS = (PROTOCOL = TCP)(HOST = 172.31.82.81)(PORT = 1521))
     (CONNECT_DATA =
       (SERVER = DEDICATED)
-      (SERVICE_NAME = TOTPD_SVC)
+      (SERVICE_NAME = SERVER01_SVC)
   )
 )
 
-MXMPD =
+SERVER02 =
   (DESCRIPTION =
     (ADDRESS = (PROTOCOL = TCP)(HOST = 172.31.82.81)(PORT = 1521))
     (CONNECT_DATA =
       (SERVER = DEDICATED)
-      (SERVICE_NAME = MXMPD_SVC)
+      (SERVICE_NAME = SERVER02_SVC)
   )
 )
 ~
@@ -131,7 +134,7 @@ Para verificar como está setado:
 ```
 select * from v$nls_parameters;
 ```
-Caso o parâmetro esteja dessa maneira **NLS_NUMERIC_CHARACTERS = ',.'**, configure no pre- processamento do item a seguinte expressão regular
+Caso o parâmetro esteja dessa maneira **NLS_NUMERIC_CHARACTERS = ',.'**, configure no pre-processamento do item a seguinte expressão regular
 
 ```
 (|[0-9]+),([0-9]+) - output \1.\2
